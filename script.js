@@ -17,7 +17,7 @@ filterSubmit.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (filterInput.value.length > 2) {
     const filterValue = filterInput.value;
-    const filteredArray = await getFilteredPokemon(filterValue);
+    const filteredArray = await getFilteredPokemon(filterValue.toLowerCase());
     renderPokemon(filteredArray);
   } else alert("Search must be at least 3 characters long");
 });
@@ -87,7 +87,6 @@ const renderPokemon = async (list) => {
 
   // get pokemon types and abilities
   const pokeTypeAbil = await getPokemonTypeAbil(pokemonList);
-  console.log(pokeTypeAbil);
   // extract types
   const pokeTypes = pokeTypeAbil[0];
   // extract abilities
@@ -175,6 +174,7 @@ const renderPokemon = async (list) => {
 
       const namePD = document.createElement("p");
       namePD.classList.add("pokemon-list__dialog__name");
+      namePD.textContent = capitalizeFirstLetter(this.name);
 
       const imageDivD = document.createElement("div");
       imageDivD.classList.add("pokemon-list__dialog__image");
@@ -183,19 +183,22 @@ const renderPokemon = async (list) => {
       imageD.classList.add("pokemon-list__dialog__image--img");
       imageD.src = this.image;
 
+      const typesDivD = document.createElement("div");
+      typesDivD.classList.add("pokemon-list__dialog__types");
+
       const typesHeadD = document.createElement("p");
-      typesHeadD.classList.add("pokemon-list__dialog__types");
+      typesHeadD.classList.add("pokemon-list__dialog__types--head");
       typesHeadD.textContent = "Types";
 
       const typesD = document.createElement("p");
-      typesD.classList.add("pokemon-list__dialog__types");
+      typesD.classList.add("pokemon-list__dialog__types--text");
       typesD.textContent = capitalizeFirstLetter(this.types);
 
       const abilitiesD = document.createElement("div");
       abilitiesD.classList.add("pokemon-list__dialog__abilities");
 
       const abilitiesTextHeadD = document.createElement("p");
-      abilitiesTextHeadD.classList.add("pokemon-list__dialog__abilities--text");
+      abilitiesTextHeadD.classList.add("pokemon-list__dialog__abilities--head");
       abilitiesTextHeadD.textContent = "Abilities";
 
       const abilitiesTextD = document.createElement("p");
@@ -205,11 +208,12 @@ const renderPokemon = async (list) => {
       // append dialog elements
       abilitiesD.appendChild(abilitiesTextHeadD);
       abilitiesD.appendChild(abilitiesTextD);
+      typesDivD.appendChild(typesHeadD);
+      typesDivD.appendChild(typesD);
       imageDivD.appendChild(imageD);
       cardDivD.appendChild(namePD);
       cardDivD.appendChild(imageDivD);
-      cardDivD.appendChild(typesHeadD);
-      cardDivD.appendChild(typesD);
+      cardDivD.appendChild(typesDivD);
       cardDivD.appendChild(abilitiesD);
       borderDivD.appendChild(cardDivD);
       // append elements
@@ -239,17 +243,30 @@ const renderPokemon = async (list) => {
           const speciesId = currentStage.species.url.split("/")[6];
           const speciesImage = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${speciesId}.png`;
 
+          const speciesDivD = document.createElement("div");
+          speciesDivD.classList.add("pokemon-list__dialog__evolution--div");
+
+          speciesDivD.addEventListener("click", async (event) => {
+            event.stopPropagation();
+            borderDivD.close();
+            filterInput.value = speciesName;
+            const filteredArray = await getFilteredPokemon(
+              speciesName.toLowerCase()
+            );
+            renderPokemon(filteredArray);
+          });
+
           const speciesP = document.createElement("p");
           speciesP.classList.add("pokemon-list__dialog__evolution--name");
-          namePD.textContent = capitalizeFirstLetter(speciesName);
           speciesP.textContent = capitalizeFirstLetter(speciesName);
 
           const speciesImg = document.createElement("img");
           speciesImg.classList.add("pokemon-list__dialog__evolution--img");
           speciesImg.src = speciesImage;
 
-          evolutionDiv.appendChild(speciesP);
-          evolutionDiv.appendChild(speciesImg);
+          speciesDivD.appendChild(speciesP);
+          speciesDivD.appendChild(speciesImg);
+          evolutionDiv.appendChild(speciesDivD);
 
           currentStage = currentStage.evolves_to[0];
         }
